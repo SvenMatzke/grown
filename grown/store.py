@@ -70,9 +70,9 @@ class _Store():
         :rtype initial_data: dict
         :param update_function: function with 2 parameter old_data, new_data
         """
-        # TODO double register?
         initial_data = self._store.get(key, initial_data)
-
+        if isinstance(initial_data, _Leaf):
+            return initial_data
         self._store[key] = _Leaf(
             initial_data,
             update_reducer=update_function,

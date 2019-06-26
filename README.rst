@@ -1,5 +1,5 @@
 # grown
-Micropython firmware for growing plants 
+Micropython firmware for growing plants
 
 
 # Requirements
@@ -13,5 +13,5 @@ like:
 ```python
 import grown
 grown....
-``` 
+```
 

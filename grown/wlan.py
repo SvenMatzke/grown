@@ -1,6 +1,11 @@
 import network
 import time
 from .store import storage
+from userv.routing import json_response, text_response
+try:
+    import ujson as json
+except ImportError:
+    import json
 
 _sta_if = network.WLAN(network.STA_IF)
 _ap_if = network.WLAN(network.AP_IF)
@@ -37,11 +42,35 @@ def _create_an_network():
     print('essid: ', essid, ', pw: ', password)
 
 
-def connect_and_configure_wlan(grown_server):
+def _update_wlan_data(old_data, new_data):
+    """
+    :type old_data: dict
+    :type new_data: dict
+    :rtype: dict
+    """
+    old_data.update(new_data)
+    return old_data
+
+
+def _get_wlan_config(request):
+    return json_response(storage.get_leaf('wlan'))
+
+
+def _post_wlan_config(request):
+    leaf = storage.get_leaf('wlan')
+    try:
+        new_wlan_config = json.loads(request.get('body', ""))
+        leaf.update(new_wlan_config)
+        return json_response(new_wlan_config)
+    except Exception as e:
+        return text_response(str(e), status=400)
+
+
+def connect_and_configure_wlan(router):
     """
     configures and starts wlan server.
     Also adds routes to server
-    :type grown_server: grown.server.GrownWebServer
+    :type router: userv.routing.Router
     """
     # connect
     storage.register_leaf(
@@ -49,7 +78,8 @@ def connect_and_configure_wlan(grown_server):
         dict(
             ssid=None,
             password=None,
-        )
+        ),
+        _update_wlan_data
     )
 
     wlan_config = storage.get_leaf('wlan')
@@ -63,4 +93,6 @@ def connect_and_configure_wlan(grown_server):
         print("Create hotspot")
         _create_an_network()
 
-    # TODO add urls for configuration
+    #
+    router.add("/setting/wlan", _get_wlan_config, method="GET")
+    router.add("/setting/wlan", _post_wlan_config, method="POST")

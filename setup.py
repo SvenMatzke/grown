@@ -15,5 +15,5 @@ setup(
     description='',
     long_description=README,
     cmdclass={'sdist': sdist_upip.sdist},
-    install_requires=['picoweb', 'micropython-ulogging']
+    install_requires=['userv', 'userv.async_server', 'micropython-ulogging']
 )

@@ -1,7 +1,8 @@
-from .store import storage
-from .server import GrownWebServer
-from data_control import configure_data_sync
-from .time_control import time_sync_task
+from .store import storage as _storage
+from userv.routing import Router as _Router
+from userv.async_server import run_server as _runserver
+from .wlan import connect_and_configure_wlan as _connect_and_configure_wlan
+from .time_control import time_sync_task as _time_sync_task
 try:
     import uasyncio as asyncio
 except ImportError:
@@ -11,23 +12,37 @@ except ImportError:
 def setup():
     """
     setting up grown tasks server
-    This setup provides basic functions like connection to Wlan or setting up a regular Hotspot.
-    Also adding rest interface to various functions like settings the logged sensor data and current sensor data.
 
-    All this is returned by a small async web server, which is able to add more tasks and routes
+    This setup provides basic functions like connection to wlan or setting up a regular hotspot.
 
-    :param gather_data_func: async function returning a dict with sensor_data
-    :rtype: GrownWebServer
+    configurable by a rest interface
+    further functions can be added by each control
+
+    :rtype: userv.routing.Router
     """
 
     # create tasks
     loop = asyncio.get_event_loop()
     # setup time sync
-    loop.create_task(time_sync_task())
+    loop.create_task(_time_sync_task())
 
     # adding routes
-    server_instance = GrownWebServer()
+    # routes can be added till a run is triggered
+    router = _Router()
+
+    # configurable tasks
+    # wlan
+    _connect_and_configure_wlan(router)
+
     # TODO add also swagger ui
 
+    # adding async webserver
+    _runserver(router)
+    return router
 
-    return server_instance
+
+def run_grown():
+    """
+    runs a grown application
+    """
+    asyncio.get_event_loop().run_forever()
