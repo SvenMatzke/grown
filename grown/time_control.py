@@ -1,16 +1,19 @@
 """
 module for time
 """
-import asyncio
 import machine
 import utime
 try:
+    import uasyncio as asyncio
+except ImportError:
+    import asyncio
+try:
     import usocket as socket
-except:
+except ImportError:
     import socket
 try:
     import ustruct as struct
-except:
+except ImportError:
     import struct
 
 # (date(2000, 1, 1) - date(1900, 1, 1)).days * 24*60*60

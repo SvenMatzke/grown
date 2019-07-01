@@ -103,3 +103,4 @@ venv.bak/
 # mypy
 .mypy_cache/
 /userv/
+/settings_store.json

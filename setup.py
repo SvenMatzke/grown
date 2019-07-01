@@ -1,19 +1,17 @@
 from setuptools import setup
 import sdist_upip
-import os
-with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
-    README = readme.read()
+
 
 setup(
     name='grown',
-    version='0.1.0',
-    packages=['picoweb'],
-    url='https://github.com/SvenMatzke/userv',
+    version='0.0.10-dev',
+    packages=['grown'],
+    url='https://github.com/SvenMatzke/grown',
     license='MIT',
     author='SvenMatzke',
     author_email='matzke.sven@googlemail.com',
-    description='',
-    long_description=README,
+    description='Grown server to run tasks',
+    long_description=open('README.rst').read(),
     cmdclass={'sdist': sdist_upip.sdist},
-    install_requires=['userv', 'userv.async_server', 'micropython-ulogging']
+    install_requires=['userv', 'userv.async-server', 'micropython-ulogging']
 )

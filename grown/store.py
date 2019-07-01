@@ -21,6 +21,9 @@ class _Leaf():
         self._save_callback = save_callback
 
     def update(self, data):
+        """
+        updates the data therefore the update_reducer is invoked and data dumped to flash drive
+        """
         if self._update_reducer is None:
             return
         self._store = self._update_reducer(self._store, data)
@@ -28,8 +31,13 @@ class _Leaf():
             return
         self._save_callback()
 
-    def get(self):
-        return self._store
+    def get(self, key=None):
+        """
+        returns the contents of the leaf if a get is given only this subset is returned
+        """
+        if key is None:
+            return self._store
+        return self._store.get(key, None)
 
 
 class _Store():
@@ -84,9 +92,9 @@ class _Store():
         retruns the current state of a leaf
         :rtype: _Leaf
         """
-        leaf = self._store.get(key, None)
-        if leaf is None:
-            return _Leaf()
+        leaf = self._store.get(key, {})
+        if isinstance(leaf, dict):
+            return _Leaf(leaf)
         return leaf
 
 
