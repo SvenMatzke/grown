@@ -1,8 +1,9 @@
 # import gc
 # import os
 import time
-from grown.store import storage
+from .store import storage
 from userv.routing import json_response
+from .logging import grown_log
 
 try:
     import uasyncio as asyncio
@@ -63,13 +64,16 @@ async def _sensor_data_task(get_sensor_data):
     sensor_data_leaf = storage.get_leaf('sensor_data')
 
     while True:
-        if isinstance(get_sensor_data, type(lambda: (yield))):
-            data = await get_sensor_data()
-        else:
-            data = get_sensor_data()
-        sensor_data_leaf.update(data)
-        # TODO sleep from settings
-        await asyncio.sleep(60)
+        try:
+            if isinstance(get_sensor_data, type(lambda: (yield))):
+                data = await get_sensor_data()
+            else:
+                data = get_sensor_data()
+            sensor_data_leaf.update(data)
+            # TODO sleep from settings
+            await asyncio.sleep(60)
+        except Exception as e:
+            grown_log.error(str(e))
 
 
 async def _get_sensor_data(request):
@@ -85,13 +89,17 @@ def add_data_control(router, gather_data_func):
     :type router: userv.routing.Router
     :param gather_data_func: gather data function
     """
-    assert callable(gather_data_func) is True, "gather_data_func is not callable"
-    # create tasks
-    loop = asyncio.get_event_loop()
+    grown_log.info("Adding data control to grown.")
+    try:
+        assert callable(gather_data_func) is True, "gather_data_func is not callable"
+        # create tasks
+        loop = asyncio.get_event_loop()
 
-    storage.register_leaf('sensor_data', {'time': time.time()}, _update_reducer)
-    loop.create_task(_sensor_data_task(gather_data_func))
+        storage.register_leaf('sensor_data', {'time': time.time()}, _update_reducer)
+        loop.create_task(_sensor_data_task(gather_data_func))
 
-    # adding routes
-    router.add("/rest/sensor_data", _get_sensor_data)
+        # adding routes
+        router.add("/rest/sensor_data", _get_sensor_data)
+    except Exception as e:
+        grown_log.error(str(e))
     # TODO history data

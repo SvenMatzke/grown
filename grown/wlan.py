@@ -1,6 +1,7 @@
 import network
 import time
 from .store import storage
+from .logging import grown_log
 from userv.routing import json_response, text_response
 try:
     import ujson as json
@@ -13,24 +14,24 @@ _ap_if = network.WLAN(network.AP_IF)
 
 def _connect_to_existing_network(essid, password):
     if essid is None or password is None:
-        print('essid or password is not set')
+        grown_log.info('essid or password is not set')
         return False
 
-    print('connecting to network...')
+    grown_log.info('connecting to network...')
     _sta_if.active(True)
 
     _sta_if.connect(essid, password)
     start_time = time.time()
-    print("connecting")
+    grown_log.info("connecting")
     while not _sta_if.isconnected() and start_time + 10 >= time.time():
         print(".")
         time.sleep(1)
     if not _sta_if.isconnected():
         _sta_if.active(False)
-        print('Connection NOT establisched')
+        grown_log.info('Connection NOT establisched')
         return False
     else:
-        print('network config:', _sta_if.ifconfig())
+        grown_log.info('network config:', _sta_if.ifconfig())
     return True
 
 
@@ -39,7 +40,7 @@ def _create_an_network():
     essid = "MyPlantMonitor"
     password = "MyPlantMonitor"
     _ap_if.config(essid=essid, password=password, authmode=4)
-    print('essid: ', essid, ', pw: ', password)
+    grown_log.info('essid: %s  pw: %s' % (essid, password))
 
 
 def _update_wlan_data(old_data, new_data):
@@ -84,13 +85,13 @@ def connect_and_configure_wlan(router):
 
     wlan_config = storage.get_leaf('wlan')
 
-    print("connect existing network")
+    grown_log.info("connect existing network")
     network_connected = _connect_to_existing_network(
         essid=wlan_config.get('ssid'),
         password=wlan_config.get('password'),
     )
     if not network_connected:
-        print("Create hotspot")
+        grown_log.info("Create hotspot")
         _create_an_network()
 
     #

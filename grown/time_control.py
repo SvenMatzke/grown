@@ -3,6 +3,8 @@ module for time
 """
 import machine
 import utime
+from .logging import grown_log
+
 try:
     import uasyncio as asyncio
 except ImportError:
@@ -30,7 +32,7 @@ def _set_system_time(ntp_time):
     tm = utime.localtime(ntp_time)
     tm = tm[0:3] + (0,) + tm[3:6] + (0,)
     machine.RTC().datetime(tm)
-    print(utime.localtime())
+    grown_log.info(str(utime.localtime()))
 
 
 async def _time_from_server():
@@ -55,8 +57,8 @@ async def time_sync_task(time_between_syncs_s=300):
         try:
             server_time = await _time_from_server()
             _set_system_time(server_time)
-        except:
-            pass
+        except Exception as e:
+            grown_log.error(str(e))
 
         await asyncio.sleep(time_between_syncs_s)
 
