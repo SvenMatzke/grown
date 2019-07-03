@@ -31,7 +31,7 @@ def _connect_to_existing_network(essid, password):
         grown_log.info('Connection NOT establisched')
         return False
     else:
-        grown_log.info('network config:', _sta_if.ifconfig())
+        grown_log.info('network config: %s' % str(_sta_if.ifconfig()))
     return True
 
 
