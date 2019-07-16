@@ -1,9 +1,7 @@
-import time
-
 from .store import storage
 from userv.routing import json_response, text_response
 from .logging import grown_log
-
+from grown.time_control import get_current_time
 try:
     import ujson as json
 except ImportError:
@@ -14,23 +12,23 @@ except ImportError:
     import asyncio
 
 
-async def _ligthing_control_task(enable_func, disable_func, safety_function):
+async def _light_control_task(enable_func, disable_func, safety_function):
     """
     all parameter are async functions and running in an infinite loop.
     control parameter
 
     :param enable_func: no parameter just enable light
     :param disable_func: no parameter just enable light
-    :param safety_function: in case of an error this function is called. only parameter will be last sensor_reads
+    :param safety_function: safety functions is always called before. returned true if not safe to run
     """
     if safety_function is None:
-        safety_function = lambda x: True
-    data_leaf = storage.get_leaf('lighting_control')
+        safety_function = lambda x: False
+    data_leaf = storage.get_leaf('light_control')
     sensor_data_leaf = storage.get_leaf('sensor_data')
     while data_leaf is not None:
         try:
             data = data_leaf.get()
-            current_time = time.time()
+            current_time = get_current_time()
             # only need time by day
             sensor_data = sensor_data_leaf.get()
 
@@ -63,16 +61,16 @@ async def _get_light_control_data(request):
     """
     path for actual data
     """
-    data_leaf = storage.get_leaf('lighting_control')
+    data_leaf = storage.get_leaf('light_control')
     return json_response(data_leaf.get())
 
 
 async def _post_light_control_data(request):
-    leaf = storage.get_leaf('lighting_control')
+    leaf = storage.get_leaf('light_control')
     try:
-        new_lighting_control = json.loads(request.get('body', ""))
-        leaf.update(new_lighting_control)
-        return json_response(new_lighting_control)
+        new_light_control = json.loads(request.get('body', ""))
+        leaf.update(new_light_control)
+        return json_response(new_light_control)
     except Exception as e:
         return text_response(str(e), status=400)
 
@@ -101,7 +99,7 @@ def add_light_control(router, enable_func, disable_func, safety_function=None):
         assert callable(enable_func) is True, "enable_func is not callable"
         assert callable(disable_func) is True, "enable_func is not callable"
         storage.register_leaf(
-            'lighting_control',
+            'light_control',
             {
                 'switch_on_time': 11 * 3600,
                 'switch_off_time': 23 * 3600
@@ -110,7 +108,7 @@ def add_light_control(router, enable_func, disable_func, safety_function=None):
         )
         # create lighting task based on set settings
         loop = asyncio.get_event_loop()
-        loop.create_task(_ligthing_control_task(enable_func, disable_func, safety_function))
+        loop.create_task(_light_control_task(enable_func, disable_func, safety_function))
         # create subserver for light control
         router.add("/rest/light_control", _get_light_control_data, 'GET')
         router.add("/rest/light_control", _post_light_control_data, 'POST')
