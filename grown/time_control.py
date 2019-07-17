@@ -32,11 +32,10 @@ def _set_system_time(ntp_time):
     tm = utime.localtime(ntp_time)
     tm = tm[0:3] + (0,) + tm[3:6] + (0,)
     machine.RTC().datetime(tm)
-    grown_log.info(str(utime.localtime()))
+    grown_log.info("timesync: %s" % str(utime.localtime()))
 
 
 async def _time_from_server():
-    # TODO use async socket
     NTP_QUERY = bytearray(48)
     NTP_QUERY[0] = 0x1b
     addr = socket.getaddrinfo(host, 123)[0][-1]

@@ -54,7 +54,10 @@ def _update_wlan_data(old_data, new_data):
 
 
 def _get_wlan_config(request):
-    return json_response(storage.get_leaf('wlan'))
+    # we should not transmit the password
+    wlan_config = storage.get_leaf('wlan')
+    wlan_config['password'] = "*" * len(wlan_config['password'])
+    return json_response(wlan_config)
 
 
 def _post_wlan_config(request):

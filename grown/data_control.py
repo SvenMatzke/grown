@@ -70,10 +70,10 @@ async def _sensor_data_task(get_sensor_data):
             else:
                 data = get_sensor_data()
             sensor_data_leaf.update(data)
-            # TODO sleep from settings
-            await asyncio.sleep(60)
         except Exception as e:
             grown_log.error(str(e))
+        # TODO sleep from settings
+        await asyncio.sleep(60)
 
 
 async def _get_sensor_data(request):

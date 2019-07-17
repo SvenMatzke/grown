@@ -25,6 +25,7 @@ async def _light_control_task(enable_func, disable_func, safety_function):
         safety_function = lambda x: False
     data_leaf = storage.get_leaf('light_control')
     sensor_data_leaf = storage.get_leaf('sensor_data')
+    last_state = None
     while data_leaf is not None:
         try:
             data = data_leaf.get()
@@ -41,20 +42,26 @@ async def _light_control_task(enable_func, disable_func, safety_function):
                 # if switching off lies in the next day
                 if switch_on_time > switch_off_time:
                     switch_off_time += 24 * 60 * 60
-                # Light on
+
                 if switch_on_time <= current_time <= switch_off_time:
-                    # Light off
+                    # Light on
+                    if last_state is not True:
+                        grown_log.info("light_control: enable light")
+                        last_state = True
                     enable = enable_func()
                     if isinstance(enable_func, type(lambda: (yield))):
                         await enable
                 else:
+                    # Light off
+                    if last_state is not False:
+                        grown_log.info("light_control: disable light")
+                        last_state = False
                     disable = disable_func()
                     if isinstance(disable_func, type(lambda: (yield))):
                         await disable
-
-            await asyncio.sleep(100)
         except Exception as e:
             grown_log.error(str(e))
+        await asyncio.sleep(100)
 
 
 async def _get_light_control_data(request):
@@ -81,7 +88,8 @@ def _update_reducer(store_dict, data):
     :type data: dict
     :rtype: dict
     """
-    return store_dict.update(data)
+    store_dict.update(data)
+    return store_dict
 
 
 def add_light_control(router, enable_func, disable_func, safety_function=None):
@@ -114,3 +122,4 @@ def add_light_control(router, enable_func, disable_func, safety_function=None):
         router.add("/rest/light_control", _post_light_control_data, 'POST')
     except Exception as e:
         grown_log.error(str(e))
+
