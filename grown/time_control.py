@@ -62,10 +62,19 @@ async def time_sync_task(time_between_syncs_s=300):
         await asyncio.sleep(time_between_syncs_s)
 
 
+def seconds_for_one_day(time_s):
+    """
+    strips away all seconds not in one day
+    :param time_s:
+    :return:
+    """
+    return time_s % (60 * 60 * 24)
+
+
 def get_current_time():
     """
     retuns the current hh:mm:ss in seconds
     :rtype: int
     """
     current_time = utime.time()
-    return current_time % (60*60*24)
+    return seconds_for_one_day(current_time)

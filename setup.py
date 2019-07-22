@@ -4,7 +4,7 @@ import sdist_upip
 
 setup(
     name='grown',
-    version='0.0.23-dev',
+    version='0.0.25-dev',
     packages=['grown'],
     url='https://github.com/SvenMatzke/grown',
     license='MIT',

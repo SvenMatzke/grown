@@ -1,7 +1,8 @@
 from .store import storage
 from userv.routing import json_response, text_response
 from .logging import grown_log
-from grown.time_control import get_current_time
+from grown.time_control import get_current_time, seconds_for_one_day
+
 try:
     import ujson as json
 except ImportError:
@@ -10,6 +11,24 @@ try:
     import uasyncio as asyncio
 except ImportError:
     import asyncio
+
+
+def _should_light_be_enabled(on_time, off_time, current_time):
+    """
+    calculated if light should be enabled
+    :type on_time: int
+    :type off_time: int
+    :type current_time: int
+    :rtype: bool
+    """
+    current_time = seconds_for_one_day(current_time)
+    # we only watch the last 24 hours
+    if on_time > off_time:
+        if current_time < on_time and current_time > off_time:
+            off_time += 24 * 60 * 60
+        else:
+            return current_time >= on_time or current_time <= off_time
+    return on_time <= current_time <= off_time
 
 
 async def _light_control_task(enable_func, disable_func, safety_function):
@@ -39,11 +58,7 @@ async def _light_control_task(enable_func, disable_func, safety_function):
             if result is not True:
                 switch_on_time = data['switch_on_time']
                 switch_off_time = data['switch_off_time']
-                # if switching off lies in the next day
-                if switch_on_time > switch_off_time:
-                    switch_off_time += 24 * 60 * 60
-
-                if switch_on_time <= current_time <= switch_off_time:
+                if _should_light_be_enabled(switch_on_time, switch_off_time, current_time):
                     # Light on
                     if last_state is not True:
                         grown_log.info("light_control: enable light")
@@ -88,6 +103,8 @@ def _update_reducer(store_dict, data):
     :type data: dict
     :rtype: dict
     """
+    # TODO check input
+    # seconds_for_one_day
     store_dict.update(data)
     return store_dict
 
@@ -122,4 +139,3 @@ def add_light_control(router, enable_func, disable_func, safety_function=None):
         router.add("/rest/light_control", _post_light_control_data, 'POST')
     except Exception as e:
         grown_log.error(str(e))
-

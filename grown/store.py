@@ -31,13 +31,13 @@ class _Leaf():
             return
         self._save_callback()
 
-    def get(self, key=None):
+    def get(self, key=None, default=None):
         """
         returns the contents of the leaf if a get is given only this subset is returned
         """
         if key is None:
             return self._store
-        return self._store.get(key, None)
+        return self._store.get(key, default)
 
 
 class _Store():
