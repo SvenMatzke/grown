@@ -60,30 +60,26 @@ def _history_data_response(headers=None):
     """
     slightly modified file serve to add 2 more braces
     """
-    # TODO we might need content len
-    # content_len = os.stat(_history_sensor_data_file)[6]
     try:
         file_ptr = open(_history_sensor_data_file, "rb")
         firstline = file_ptr.readline()
-        # content_len += content_len//firstline + 2 # adding 2 braces and x ,
         for line in response_header(
                 status=200,
                 content_type="application/json",
-                # content_length=content_len,
                 headers=headers
         ):
             yield b"%s" % line
-        yield b"{%s" % firstline
+        yield b"[%s" % firstline
         while True:
             read = file_ptr.readline()
-            if read == "":
+            if read == b"":
                 break
             else:
                 yield b",%s" % read
             gc.collect()
     finally:
         file_ptr.close()
-    yield b"}\r\n"
+    yield b"]\r\n"
 
 
 def _update_reducer(store_dict, data):
