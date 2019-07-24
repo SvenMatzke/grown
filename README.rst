@@ -31,6 +31,18 @@ like::
 Setup of grown starts a timesync task and wlan configuration.
 After the run_grown a webserver is opened with a rest interface to change settings for each task.
 
+Swagger
+=======
+Every action and info you add to the router is automaticly provided as open api provided by grown.
+We use swagger.ui as description which can be used standalone.
+For useing just explore the given link in the ui
+Example::
+
+    http:\\myiotdevice\swagger.json
+
+This way after adding all controls you have a good base to develop further views or test
+the given params.
+
 data control
 ============
 This module to log data overtime from your sensors. Enable logging is prety simple write a
@@ -105,11 +117,4 @@ Example::
     leaf.update({'new_data': 3.0})
 
     print(leaf.get())
-
-TODO
-====
-- swagger for rest url
-- data_control history
-
-description of development for tasks and therefore the store
 

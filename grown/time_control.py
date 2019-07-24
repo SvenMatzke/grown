@@ -3,6 +3,9 @@ module for time
 """
 import machine
 import utime
+
+from userv import swagger
+from userv.routing import json_response
 from .logging import grown_log
 
 try:
@@ -48,7 +51,7 @@ async def _time_from_server():
     return val - NTP_DELTA
 
 
-async def time_sync_task(time_between_syncs_s=300):
+async def _time_sync_task(time_between_syncs_s=300):
     """
     task for synchronising time
     """
@@ -78,3 +81,29 @@ def get_current_time():
     """
     current_time = utime.time()
     return seconds_for_one_day(current_time)
+
+
+@swagger.info("Returns current time information of device")
+async def _get_time_information(request):
+    current_time = utime.time()
+    return json_response({
+        'time_s': current_time,
+        'time_of_day_s': seconds_for_one_day(current_time)
+    })
+
+
+def add_time_control(router):
+    """
+    Adds an continues sync process to an server
+    also adds routes to serve certain data
+    :type router: user.routing.Router
+    """
+    grown_log.info('Adding time control to grown server')
+    try:
+        # create lighting task based on set settings
+        loop = asyncio.get_event_loop()
+        loop.create_task(_time_sync_task())
+        # create subserver for light control
+        router.add("/rest/time", _get_time_information, 'GET')
+    except Exception as e:
+        grown_log.error(str(e))

@@ -1,5 +1,6 @@
 from .store import storage
 from userv.routing import json_response, text_response
+from userv import swagger
 from .logging import grown_log
 from grown.time_control import get_current_time, seconds_for_one_day
 
@@ -79,6 +80,7 @@ async def _light_control_task(enable_func, disable_func, safety_function):
         await asyncio.sleep(100)
 
 
+@swagger.info("get current data from light control")
 async def _get_light_control_data(request):
     """
     path for actual data
@@ -87,6 +89,13 @@ async def _get_light_control_data(request):
     return json_response(data_leaf.get())
 
 
+@swagger.info("Sets light control")
+@swagger.body('light_control',
+              summary="Sets an on or off time. time in seconds. max value is 24*3600 seconds.",
+              example={
+                'switch_on_time': 11 * 3600,
+                'switch_off_time': 23 * 3600
+            })
 async def _post_light_control_data(request):
     leaf = storage.get_leaf('light_control')
     try:
@@ -103,9 +112,11 @@ def _update_reducer(store_dict, data):
     :type data: dict
     :rtype: dict
     """
-    # TODO check input
-    # seconds_for_one_day
-    store_dict.update(data)
+    if data.get('switch_on_time', None) is not None:
+        store_dict['switch_on_time'] = data['switch_on_time'] % 24*3600
+
+    if data.get('switch_off_time', None) is not None:
+        store_dict['switch_off_time'] = data['switch_off_time'] % 24*3600
     return store_dict
 
 

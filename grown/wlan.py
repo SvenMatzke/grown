@@ -1,5 +1,7 @@
 import network
 import time
+
+from userv import swagger
 from .store import storage
 from .logging import grown_log
 from userv.routing import json_response, text_response
@@ -53,13 +55,21 @@ def _update_wlan_data(old_data, new_data):
     return old_data
 
 
+@swagger.info("gets current wlan configuration")
 def _get_wlan_config(request):
     # we should not transmit the password
-    wlan_config = storage.get_leaf('wlan')
+    wlan_config = storage.get_leaf('wlan').get()
     wlan_config['password'] = "*" * len(wlan_config['password'])
     return json_response(wlan_config)
 
 
+@swagger.info("sets wlan configuration")
+@swagger.body('WlanConfiguration',
+              summary="Wlan  configuration",
+              example={
+                  'ssid': "",
+                  'password': "",
+              })
 def _post_wlan_config(request):
     leaf = storage.get_leaf('wlan')
     try:
