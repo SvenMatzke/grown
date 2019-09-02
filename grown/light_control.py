@@ -99,7 +99,7 @@ async def _get_light_control_data(request):
 async def _post_light_control_data(request):
     leaf = storage.get_leaf('light_control')
     try:
-        new_light_control = json.loads(request.get('body', ""))
+        new_light_control = json.loads(request['body'])
         leaf.update(new_light_control)
         return json_response(new_light_control)
     except Exception as e:
@@ -113,10 +113,11 @@ def _update_reducer(store_dict, data):
     :rtype: dict
     """
     if data.get('switch_on_time', None) is not None:
-        store_dict['switch_on_time'] = data['switch_on_time'] % 24*3600
+        store_dict['switch_on_time'] = int(data['switch_on_time']) % 24*3600
 
     if data.get('switch_off_time', None) is not None:
-        store_dict['switch_off_time'] = data['switch_off_time'] % 24*3600
+        store_dict['switch_off_time'] = int(data['switch_off_time']) % 24*3600
+
     return store_dict
 
 

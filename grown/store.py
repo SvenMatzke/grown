@@ -26,7 +26,12 @@ class _Leaf():
         """
         if self._update_reducer is None:
             return
-        self._store = self._update_reducer(self._store, data)
+        try:
+            new_store = self._update_reducer(self._store, data)
+        except:
+            return
+        self._store = new_store
+
         if self._save_callback is None:
             return
         self._save_callback()

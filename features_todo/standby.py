@@ -59,3 +59,9 @@ def set_awake_time_and_put_to_deepsleep(time_in_s):
 
     # put the device to sleep
     machine.deepsleep()
+
+#TODO
+# standby after x minutes
+# restconfig
+# gathering till reset is switched or x times to send data to url
+# This hole module will be low energy triggered meaning setup will have to be different then on normal devices
