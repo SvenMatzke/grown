@@ -11,7 +11,7 @@ import os
 _settings_file = "settings_store.json"
 
 
-class _Leaf():
+class _Leaf:
 
     def __init__(self, initial_data=None, update_reducer=None, save_callback=None):
         if initial_data is None:
@@ -25,6 +25,7 @@ class _Leaf():
         updates the data therefore the update_reducer is invoked and data dumped to flash drive
         """
         if self._update_reducer is None:
+            self._store = data
             return
         try:
             new_store = self._update_reducer(self._store, data)
@@ -45,7 +46,7 @@ class _Leaf():
         return self._store.get(key, default)
 
 
-class _Store():
+class _Store:
 
     def __init__(self):
         if _settings_file not in os.listdir():
