@@ -14,7 +14,7 @@ _sta_if = network.WLAN(network.STA_IF)
 _ap_if = network.WLAN(network.AP_IF)
 
 
-def _connect_to_existing_network(essid, password):
+def _connect_to_existing_network(essid, password, static_ip=None):
     if essid is None or password is None:
         grown_log.info('essid or password is not set')
         return False
@@ -33,6 +33,10 @@ def _connect_to_existing_network(essid, password):
         grown_log.info('Connection NOT establisched')
         return False
     else:
+        current_config = list(_sta_if.ifconfig())
+        if static_ip is not None and str(static_ip).count(".") == 3:
+            current_config[0] = static_ip
+            _sta_if.ifconfig(current_config)
         grown_log.info('network config: %s' % str(_sta_if.ifconfig()))
     return True
 
@@ -52,6 +56,13 @@ def _update_wlan_data(old_data, new_data):
     :rtype: dict
     """
     old_data.update(new_data)
+
+    # new data so we can change on the fly
+    _connect_to_existing_network(
+        essid=old_data.get('ssid'),
+        password=old_data.get('password'),
+        static_ip=old_data.get('static_ip')
+    )
     return old_data
 
 
@@ -65,10 +76,11 @@ def _get_wlan_config(request):
 
 @swagger.info("sets wlan configuration")
 @swagger.body('WlanConfiguration',
-              summary="Wlan  configuration",
+              summary="Wlan configuration, changing static_ip will need a reboot.",
               example={
                   'ssid': "",
                   'password': "",
+                  'static_ip': None,
               })
 def _post_wlan_config(request):
     leaf = storage.get_leaf('wlan')
@@ -92,6 +104,7 @@ def connect_and_configure_wlan(router):
         dict(
             ssid=None,
             password=None,
+            static_ip=None
         ),
         _update_wlan_data
     )
@@ -102,6 +115,7 @@ def connect_and_configure_wlan(router):
     network_connected = _connect_to_existing_network(
         essid=wlan_config.get('ssid'),
         password=wlan_config.get('password'),
+        static_ip=wlan_config.get('static_ip', None)
     )
     if not network_connected:
         grown_log.info("Create hotspot")

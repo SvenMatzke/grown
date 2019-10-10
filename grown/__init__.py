@@ -67,12 +67,21 @@ def run_grown():
         # need to add swagger before run
         if _last_router is not None:
             _last_router.add(
-                "/swagger.json",
+                "/rest/swagger.json",
                 swagger.swagger_file(
                     'Grown swagger api',
                     "Grown",
                     host=_sta_if.ifconfig()[0],
                     router_instance=_last_router
+                ),
+                method="GET"
+            )
+            _last_router.add(
+                "/rest/index.html",
+                swagger.swagger_index(
+                    'Grown swagger api',
+                    host=_sta_if.ifconfig()[0],
+                    swagger_json_url="rest/swagger.json"
                 ),
                 method="GET"
             )
