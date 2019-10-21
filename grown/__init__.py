@@ -1,13 +1,26 @@
+from .wlan import connect_and_configure_wlan as _connect_and_configure_wlan, _sta_if
+from userv.routing import Router as _Router, text_response
+import machine
+
+# Minimize needed Ram to be able to update
+print("reset %s: " % machine.reset_cause())
+if machine.reset_cause() in [machine.HARD_RESET, machine.PWRON_RESET, machine.SOFT_RESET, machine.DEEPSLEEP_RESET]:
+    print("Starting update")
+    router = _Router()
+    _connect_and_configure_wlan(router)
+    import upip
+    import gc
+    gc.collect()
+    upip.install('grown')
+    machine.reset()
+
 from userv import swagger
 from .logging import grown_log, configure_logging as _configure_logging
 from .store import storage as _storage
-from userv.routing import Router as _Router, text_response
+
 from userv.async_server import run_server as _runserver
-from .wlan import connect_and_configure_wlan as _connect_and_configure_wlan, _sta_if
 from .time_control import add_time_control as _add_time_control
-import gc
-import upip
-import machine
+
 try:
     import uasyncio as asyncio
 except ImportError:
@@ -19,8 +32,6 @@ _last_router = None
 @swagger.info("get current data from light control")
 @swagger.response(500, "Reset will cause this")
 def _update_grown(request):
-    gc.collect()
-    upip.install("grown")
     machine.reset()
     return text_response("Hard reseting after update please wait!", status=200)
 
@@ -89,5 +100,4 @@ def run_grown():
     except Exception as e:
         grown_log.error(str(e))
     finally:
-        # TODO save log to file?
         pass
