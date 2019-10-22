@@ -4,7 +4,7 @@ import machine
 
 # Minimize needed Ram to be able to update
 print("reset %s: " % machine.reset_cause())
-if machine.reset_cause() in [machine.HARD_RESET, machine.PWRON_RESET, machine.SOFT_RESET, machine.DEEPSLEEP_RESET]:
+if machine.reset_cause() in [machine.HARD_RESET, machine.PWRON_RESET, machine.DEEPSLEEP_RESET]:
     print("Starting update")
     router = _Router()
     _connect_and_configure_wlan(router)
@@ -32,7 +32,16 @@ _last_router = None
 @swagger.info("get current data from light control")
 @swagger.response(500, "Reset will cause this")
 def _update_grown(request):
-    machine.reset()
+    rtc = machine.RTC()
+
+    # configure RTC.ALARM0 to be able to wake the device
+    rtc.irq(trigger=rtc.ALARM0, wake=machine.DEEPSLEEP_RESET)
+
+    # setting 1 second to restart
+    rtc.alarm(rtc.ALARM0, 1000)
+
+    # deepsleep reset
+    machine.deepsleep()
     return text_response("Hard reseting after update please wait!", status=200)
 
 
