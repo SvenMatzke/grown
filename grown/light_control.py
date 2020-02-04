@@ -76,7 +76,7 @@ async def _light_control_task(enable_func, disable_func, safety_function):
                     if isinstance(disable_func, type(lambda: (yield))):
                         await disable
         except Exception as e:
-            grown_log.error(str(e))
+            grown_log.error("light_control: %s" % str(e))
         await asyncio.sleep(100)
 
 
@@ -93,9 +93,9 @@ async def _get_light_control_data(request):
 @swagger.body('light_control',
               summary="Sets an on or off time. time in seconds. max value is 24*3600 seconds.",
               example={
-                'switch_on_time': 11 * 3600,
-                'switch_off_time': 23 * 3600
-            })
+                  'switch_on_time': 11 * 3600,
+                  'switch_off_time': 23 * 3600
+              })
 async def _post_light_control_data(request):
     leaf = storage.get_leaf('light_control')
     try:
@@ -103,7 +103,7 @@ async def _post_light_control_data(request):
         leaf.update(new_light_control)
         return json_response(new_light_control)
     except Exception as e:
-        return text_response(str(e), status=400)
+        return text_response("light_control: %s" % str(e), status=400)
 
 
 def _update_reducer(store_dict, data):
@@ -113,10 +113,10 @@ def _update_reducer(store_dict, data):
     :rtype: dict
     """
     if data.get('switch_on_time', None) is not None:
-        store_dict['switch_on_time'] = int(data['switch_on_time']) % 24*3600
+        store_dict['switch_on_time'] = int(data['switch_on_time']) % 24 * 3600
 
     if data.get('switch_off_time', None) is not None:
-        store_dict['switch_off_time'] = int(data['switch_off_time']) % 24*3600
+        store_dict['switch_off_time'] = int(data['switch_off_time']) % 24 * 3600
 
     return store_dict
 
@@ -150,4 +150,4 @@ def add_light_control(router, enable_func, disable_func, safety_function=None):
         router.add("/rest/light_control", _get_light_control_data, 'GET')
         router.add("/rest/light_control", _post_light_control_data, 'POST')
     except Exception as e:
-        grown_log.error(str(e))
+        grown_log.error("light_control: %s" % str(e))

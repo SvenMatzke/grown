@@ -26,7 +26,7 @@ def _trim_log(file_name):
     if log is over the maximum we trim 10% old logs
     TODO alternative we average the data by 2 elements each
     """
-    max_log_size = storage.get_leaf('sensor_config').get('logsize', 5*512)
+    max_log_size = storage.get_leaf('sensor_config').get('logsize', 5 * 512)
     file_size_in_bytes = os.stat(file_name)[6]
     if file_size_in_bytes <= max_log_size:
         return
@@ -125,7 +125,7 @@ async def _sensor_data_task(get_sensor_data):
                 data = get_sensor_data()
             sensor_data_leaf.update(data)
         except Exception as e:
-            grown_log.error(str(e))
+            grown_log.error("data_control: %s" % str(e))
         await asyncio.sleep(sensor_configuration.get('gather_frequency', 60))
 
 
@@ -163,7 +163,7 @@ async def _post_sensor_config(request):
         sensor_config.update(new_sensor_config)
         return json_response(sensor_config.get())
     except Exception as e:
-        return text_response(str(e), status=400)
+        return text_response("data_control: %s" % str(e), status=400)
 
 
 def add_data_control(router, gather_data_func):
@@ -198,4 +198,4 @@ def add_data_control(router, gather_data_func):
         router.add("/rest/sensor/config", _post_sensor_config, method="POST")
         router.add("/rest/sensor/history", _get_sensor_data_history)
     except Exception as e:
-        grown_log.error(str(e))
+        grown_log.error("data_control: %s" % str(e))

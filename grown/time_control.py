@@ -60,7 +60,7 @@ async def _time_sync_task(time_between_syncs_s=300):
             server_time = await _time_from_server()
             _set_system_time(server_time)
         except Exception as e:
-            grown_log.error(str(e))
+            grown_log.error("time_control: %s" % str(e))
 
         await asyncio.sleep(time_between_syncs_s)
 
@@ -106,4 +106,4 @@ def add_time_control(router):
         # create subserver for light control
         router.add("/rest/time", _get_time_information, 'GET')
     except Exception as e:
-        grown_log.error(str(e))
+        grown_log.error("time_control: %s" % str(e))
